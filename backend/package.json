@@ -1,0 +1,63 @@
+{
+  "name": "creator-portfolio-hub-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Creator Portfolio Hub",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.ts",
+
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
+  },
+  "keywords": [
+    "express",
+    "typescript",
+    "prisma",
+    "portfolio"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.864.0",
+    "@aws-sdk/s3-request-presigner": "^3.864.0",
+    "@prisma/client": "^6.1.0",
+    "@types/multer": "^2.0.0",
+    "bcryptjs": "^2.4.3",
+    "bullmq": "^5.34.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "helmet": "^8.0.0",
+    "ioredis": "^5.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "meilisearch": "^0.52.0",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.2",
+    "path-to-regexp": "^8.2.0",
+    "prisma": "^6.1.0",
+    "redis": "^4.7.0",
+    "sharp": "^0.34.3",
+    "winston": "^3.17.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/ioredis": "^4.28.10",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^22.10.2",
+
+    "@types/winston": "^2.4.4",
+
+    "nodemon": "^3.1.9",
+
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}

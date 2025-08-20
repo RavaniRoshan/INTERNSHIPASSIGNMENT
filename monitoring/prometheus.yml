@@ -1,0 +1,56 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # cAdvisor
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # Backend API health checks
+  - job_name: 'backend-health'
+    metrics_path: '/health/metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    scrape_interval: 30s
+
+  # Frontend health checks
+  - job_name: 'frontend-health'
+    metrics_path: '/api/health'
+    static_configs:
+      - targets: ['frontend:3000']
+    scrape_interval: 30s
+
+  # Database monitoring (if metrics are exposed)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s
+
+  # Redis monitoring (if metrics are exposed)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+
+  # Meilisearch monitoring
+  - job_name: 'meilisearch'
+    metrics_path: '/health'
+    static_configs:
+      - targets: ['meilisearch:7700']
+    scrape_interval: 30s

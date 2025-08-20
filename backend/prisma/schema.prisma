@@ -1,0 +1,159 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+enum UserRole {
+  CREATOR
+  VIEWER
+}
+
+enum EngagementAction {
+  VIEW
+  LIKE
+  FOLLOW
+  SHARE
+}
+
+enum FileStatus {
+  UPLOADED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole
+  profile      Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  projects     Project[]
+  followers    Follow[] @relation("UserFollowers")
+  following    Follow[] @relation("UserFollowing")
+  engagements  UserEngagement[]
+  uploadedFiles UploadedFile[]
+
+  @@map("users")
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  creatorId       String   @map("creator_id")
+  title           String
+  description     String?
+  content         Json?
+  coverImage      String?  @map("cover_image")
+  mediaGallery    Json?    @map("media_gallery")
+  tags            String[]
+  techStack       String[] @map("tech_stack")
+  isPublished     Boolean  @default(false) @map("is_published")
+  viewCount       Int      @default(0) @map("view_count")
+  engagementScore Float    @default(0) @map("engagement_score")
+  embeddings      Unsupported("vector(384)")?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  creator     User               @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  analytics   ProjectAnalytics[]
+  engagements UserEngagement[]
+  uploadedFiles UploadedFile[]
+
+  // Indexes for performance optimization
+  @@index([isPublished, createdAt(sort: Desc)]) // For published projects listing
+  @@index([creatorId, updatedAt(sort: Desc)]) // For creator's projects
+  @@index([tags]) // For tag-based searches
+  @@index([techStack]) // For tech stack filtering
+  @@index([viewCount(sort: Desc)]) // For popular projects
+  @@index([engagementScore(sort: Desc)]) // For trending projects
+  @@index([createdAt(sort: Desc)]) // For chronological ordering
+  @@map("projects")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  follower  User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model ProjectAnalytics {
+  id              String   @id @default(cuid())
+  projectId       String   @map("project_id")
+  date            DateTime @db.Date
+  views           Int      @default(0)
+  uniqueViews     Int      @default(0) @map("unique_views")
+  ctr             Float    @default(0)
+  engagementRate  Float    @default(0) @map("engagement_rate")
+  referralSources Json?    @map("referral_sources")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, date])
+  @@index([date(sort: Desc)]) // For time-based analytics queries
+  @@index([projectId, date(sort: Desc)]) // For project-specific analytics
+  @@map("project_analytics")
+}
+
+model UserEngagement {
+  id        String            @id @default(cuid())
+  userId    String            @map("user_id")
+  projectId String            @map("project_id")
+  action    EngagementAction
+  timestamp DateTime          @default(now())
+  sessionId String?           @map("session_id")
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Indexes for analytics queries
+  @@index([projectId, timestamp(sort: Desc)]) // For project engagement timeline
+  @@index([userId, timestamp(sort: Desc)]) // For user activity
+  @@index([action, timestamp(sort: Desc)]) // For action-specific analytics
+  @@map("user_engagements")
+}
+
+model UploadedFile {
+  id           String     @id @default(cuid())
+  key          String     @unique
+  originalName String     @map("original_name")
+  contentType  String     @map("content_type")
+  size         Int
+  url          String
+  thumbnailUrl String?    @map("thumbnail_url")
+  optimizedUrl String?    @map("optimized_url")
+  status       FileStatus @default(UPLOADED)
+  userId       String     @map("user_id")
+  projectId    String?    @map("project_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("uploaded_files")
+}
