@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
-import { Prisma } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import logger from '../utils/logger';
 
 export interface APIError {
@@ -80,7 +80,7 @@ export class ServiceUnavailableError extends AppError {
 
 // Error handler for Zod validation errors
 const handleZodError = (error: ZodError): APIError => {
-  const details = (error.errors || []).map(err => ({
+  const details = (error.issues || []).map(err => ({
     field: err.path.join('.'),
     message: err.message,
     code: err.code,
@@ -139,7 +139,7 @@ const handlePrismaError = (error: Prisma.PrismaClientKnownRequestError): APIErro
 
 // Main error handling middleware
 export const globalErrorHandler = (
-  err: Error,
+  err: unknown,
   req: Request,
   res: Response,
   next: NextFunction
